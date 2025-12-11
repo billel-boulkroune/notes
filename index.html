@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام عرض نقاط الطلاب</title>
+    <meta name="description" content="نظام عرض نقاط الطلاب مع صور أوراق الإجابة">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                        <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                    <h1>نظام عرض النقاط</h1>
+                </div>
+                <p class="subtitle">اطلع على نتائجك وأوراق إجابتك</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <!-- Search Section -->
+            <section id="searchSection" class="search-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>البحث عن نتيجتك</h2>
+                        <p>أدخل رقم التعريف الدراسي وتاريخ الميلاد للاطلاع على نتيجتك</p>
+                    </div>
+                    <form id="searchForm" class="search-form">
+                        <div class="form-group">
+                            <label for="studentId">رقم التعريف الدراسي</label>
+                            <input type="text" id="studentId" name="studentId" placeholder="مثال: 2024001" required
+                                autocomplete="off">
+                            <span class="input-icon">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path
+                                        d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                                    <path
+                                        d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                                </svg>
+                            </span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="birthDate">تاريخ الميلاد</label>
+                            <input type="date" id="birthDate" name="birthDate" required autocomplete="off">
+                            <span class="input-icon">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" />
+                                    <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" />
+                                    <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            </span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <span>عرض النتيجة</span>
+                            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                                <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </button>
+                    </form>
+
+                    <!-- Loading Spinner -->
+                    <div id="loadingSpinner" class="loading-spinner hidden">
+                        <div class="spinner"></div>
+                        <p>جاري البحث عن نتيجتك...</p>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div id="errorMessage" class="error-message hidden">
+                        <svg class="error-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                            <line x1="12" y1="8" x2="12" y2="12" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" />
+                            <line x1="12" y1="16" x2="12.01" y2="16" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <p id="errorText"></p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section id="resultsSection" class="results-section hidden">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>نتيجتك</h2>
+                        <button id="backBtn" class="btn btn-secondary">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <line x1="19" y1="12" x2="5" y2="12" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                                <polyline points="12 19 5 12 12 5" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            <span>بحث جديد</span>
+                        </button>
+                    </div>
+
+                    <div class="result-content">
+                        <!-- Student Info -->
+                        <div class="student-info">
+                            <div class="info-item">
+                                <span class="info-label">الاسم الكامل</span>
+                                <span class="info-value" id="studentName">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">رقم التعريف</span>
+                                <span class="info-value" id="displayStudentId">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">المادة/الاختبار</span>
+                                <span class="info-value" id="subjectName">-</span>
+                            </div>
+                        </div>
+
+                        <!-- Grade Display -->
+                        <div class="grade-display">
+                            <div class="grade-circle">
+                                <svg class="grade-progress" viewBox="0 0 200 200">
+                                    <circle cx="100" cy="100" r="90" fill="none" stroke="#e0e7ff" stroke-width="12" />
+                                    <circle id="gradeProgressCircle" cx="100" cy="100" r="90" fill="none"
+                                        stroke="url(#gradeGradient)" stroke-width="12" stroke-linecap="round"
+                                        transform="rotate(-90 100 100)" stroke-dasharray="565.48"
+                                        stroke-dashoffset="565.48" />
+                                    <defs>
+                                        <linearGradient id="gradeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+                                            <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                                <div class="grade-text">
+                                    <span class="grade-value" id="gradeValue">0</span>
+                                    <span class="grade-total">/ 20</span>
+                                </div>
+                            </div>
+                            <p class="grade-label">النقطة المحصل عليها</p>
+                        </div>
+
+                        <!-- Answer Sheet Section -->
+                        <div class="answer-sheet-section">
+                            <h3>ورقة الإجابة</h3>
+                            <div id="answerSheetContainer" class="answer-sheet-container">
+                                <div class="image-wrapper">
+                                    <img id="answerSheetImage" src="" alt="ورقة الإجابة" class="answer-sheet-image">
+                                    <div class="image-overlay">
+                                        <button id="zoomBtn" class="image-btn" title="تكبير الصورة">
+                                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" />
+                                                <line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor"
+                                                    stroke-width="2" />
+                                                <line x1="11" y1="8" x2="11" y2="14" stroke="currentColor"
+                                                    stroke-width="2" />
+                                                <line x1="8" y1="11" x2="14" y2="11" stroke="currentColor"
+                                                    stroke-width="2" />
+                                            </svg>
+                                        </button>
+                                        <a id="downloadBtn" class="image-btn" title="تحميل الصورة" download>
+                                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path
+                                                    d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15"
+                                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round" />
+                                                <polyline points="7 10 12 15 17 10" stroke="currentColor"
+                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                                <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor"
+                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div id="noImageMessage" class="no-image-message hidden">
+                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor"
+                                            stroke-width="2" />
+                                        <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
+                                        <polyline points="21 15 16 10 5 21" stroke="currentColor" stroke-width="2" />
+                                    </svg>
+                                    <p>لا توجد صورة لورقة الإجابة</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Image Zoom Modal -->
+    <div id="zoomModal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <button id="closeModal" class="modal-close">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2" />
+                    <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2" />
+                </svg>
+            </button>
+            <img id="zoomedImage" src="" alt="ورقة الإجابة - مكبرة">
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>نظام عرض نقاط الطلاب &copy; 2024</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/demo-data.js"></script>
+    <script src="js/sheets-api.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
