@@ -12,7 +12,7 @@
     --color-primary-dark: #4f46e5;
     --color-secondary: #8b5cf6;
     --color-accent: #ec4899;
-    
+
     /* Colors - Neutrals */
     --color-background: #f8fafc;
     --color-surface: #ffffff;
@@ -21,25 +21,25 @@
     --color-text-muted: #94a3b8;
     --color-border: #e2e8f0;
     --color-border-light: #f1f5f9;
-    
+
     /* Colors - Semantic */
     --color-success: #10b981;
     --color-error: #ef4444;
     --color-warning: #f59e0b;
     --color-info: #3b82f6;
-    
+
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     --gradient-secondary: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
     --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    
+
     /* Shadows */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
-    
+
     /* Spacing */
     --spacing-xs: 0.5rem;
     --spacing-sm: 0.75rem;
@@ -48,14 +48,14 @@
     --spacing-xl: 2rem;
     --spacing-2xl: 3rem;
     --spacing-3xl: 4rem;
-    
+
     /* Border Radius */
     --radius-sm: 0.375rem;
     --radius-md: 0.5rem;
     --radius-lg: 0.75rem;
     --radius-xl: 1rem;
     --radius-full: 9999px;
-    
+
     /* Typography */
     --font-family: 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --font-size-xs: 0.75rem;
@@ -66,7 +66,7 @@
     --font-size-2xl: 1.5rem;
     --font-size-3xl: 1.875rem;
     --font-size-4xl: 2.25rem;
-    
+
     /* Transitions */
     --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
     --transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -371,7 +371,9 @@ body {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .loading-spinner p {
@@ -421,6 +423,7 @@ body {
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -640,7 +643,7 @@ body {
     max-height: 90vh;
     background: white;
     border-radius: var(--radius-xl);
-    overflow: hidden;
+    overflow: auto;
     box-shadow: var(--shadow-xl);
 }
 
@@ -703,39 +706,39 @@ body {
         --font-size-3xl: 1.5rem;
         --font-size-4xl: 1.875rem;
     }
-    
+
     .header {
         padding: var(--spacing-xl) 0;
     }
-    
+
     .logo-icon {
         width: 36px;
         height: 36px;
     }
-    
+
     .main {
         padding: var(--spacing-xl) 0;
     }
-    
+
     .card-header {
         padding: var(--spacing-lg);
     }
-    
+
     .search-form,
     .result-content {
         padding: var(--spacing-lg);
     }
-    
+
     .student-info {
         grid-template-columns: 1fr;
         gap: var(--spacing-md);
     }
-    
+
     .grade-circle {
         width: 160px;
         height: 160px;
     }
-    
+
     .grade-value {
         font-size: var(--font-size-3xl);
     }
@@ -745,11 +748,11 @@ body {
     .container {
         padding: 0 var(--spacing-md);
     }
-    
+
     .btn-primary {
         padding: var(--spacing-md) var(--spacing-lg);
     }
-    
+
     .image-overlay {
         opacity: 1;
     }
@@ -759,18 +762,19 @@ body {
    Print Styles
    ========================================== */
 @media print {
+
     .header,
     .footer,
     .btn,
     .image-overlay {
         display: none;
     }
-    
+
     .card {
         box-shadow: none;
         border: 1px solid var(--color-border);
     }
-    
+
     body {
         background: white;
     }

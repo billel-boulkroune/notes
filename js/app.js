@@ -197,6 +197,13 @@ function displayResults(student) {
     if (imageUrl) {
         DOM.answerSheetImage.src = imageUrl;
         DOM.answerSheetImage.alt = `ورقة إجابة ${student.studentName}`;
+
+        // Debug loading errors
+        DOM.answerSheetImage.onerror = () => {
+            console.error('❌ Browser failed to load image. Data might be corrupt.');
+            console.log('Src start:', DOM.answerSheetImage.src.substring(0, 100));
+        };
+
         DOM.answerSheetImage.parentElement.classList.remove('hidden');
         DOM.noImageMessage.classList.add('hidden');
 

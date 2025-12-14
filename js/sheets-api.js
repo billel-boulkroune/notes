@@ -24,7 +24,8 @@ const SHEETS_CONFIG = {
         studentName: 2,    // Column C
         subject: 3,        // Column D
         grade: 4,          // Column E
-        imageUrl: 5        // Column F
+        section: 5,        // Column F
+        imageUrl: 6       // Column G
     }
 };
 
@@ -34,7 +35,7 @@ const SHEETS_CONFIG = {
 let dataCache = {
     data: null,
     timestamp: null,
-    ttl: 5 * 60 * 1000 // 5 minutes cache
+    ttl: 3 * 1000 // 5 minutes cache
 };
 
 /**
@@ -51,7 +52,7 @@ async function fetchSheetData() {
     try {
         const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEETS_CONFIG.sheetId}/values/${SHEETS_CONFIG.sheetName}?key=${SHEETS_CONFIG.apiKey}`;
 
-        const response = await fetch(url);
+        const response = await fetch(url, { cache: "no-store" });
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -124,13 +125,52 @@ async function searchStudent(studentId, birthDate) {
 
             if (rowId === searchId && rowDate === searchDate) {
                 // Found a match
+                // Smart Universal Image Handling:
+                // Join all potential chunks, then clean up.
+                let rawImage = row[6] || '';
+                let imageUrl; // Declare imageUrl here
+
+                if (rawImage.startsWith('http')) {
+                    // It's a URL, keep as is
+                    imageUrl = rawImage;
+                } else {
+                    // It's likely a Base64 string (split or not)
+                    // 1. Join all columns to capture full data
+                    let fullString = row.slice(6).join('');
+
+                    // 2. Aggressive Cleaning:
+                    // - Remove underscore '_' (our prefix)
+                    // - Remove newlines
+                    // - Fix spaces (Google Sheets weirdness) to '+'
+                    imageUrl = fullString
+                        .replace(/_/g, '')
+                        .replace(/(\r\n|\n|\r)/gm, "")
+                        .replace(/ /g, '+');
+                }
+
+                console.log('Found Student:', row[SHEETS_CONFIG.columns.studentName]);
+                console.log('Row length:', row.length);
+                console.log('Raw Image Chunks:', row.slice(6).length);
+                console.log('Reconstructed Image Length:', imageUrl.length);
+                if (imageUrl.length > 50) {
+                    const start = imageUrl.substring(0, 30);
+                    console.log('Image Start:', start);
+                    if (!start.startsWith('data:image')) {
+                        console.error('⚠️ Image corrupt? Missing data:image prefix:', start);
+                    } else {
+                        console.log('✅ Image header valid');
+                    }
+                } else {
+                    console.log('Image seems too short or empty:', imageUrl);
+                }
+
                 return {
                     studentId: row[SHEETS_CONFIG.columns.studentId] || '',
-                    birthDate: row[SHEETS_CONFIG.columns.birthDate] || '',
+                    birthDate: row[SHEETS_CONFIG.columns.birthDate] || '', // Use raw date, app.js formats it
                     studentName: row[SHEETS_CONFIG.columns.studentName] || '',
                     subject: row[SHEETS_CONFIG.columns.subject] || '',
                     grade: parseFloat(row[SHEETS_CONFIG.columns.grade]) || 0,
-                    imageUrl: row[SHEETS_CONFIG.columns.imageUrl] || ''
+                    imageUrl: imageUrl
                 };
             }
         }
@@ -152,6 +192,12 @@ async function searchStudent(studentId, birthDate) {
 function convertDriveUrl(url) {
     if (!url) return '';
 
+    // If it's a data URI (Base64), return as is
+    if (url.startsWith('data:')) return url;
+
+    // If it's not a web URL (doesn't start with http), return as is
+    if (!url.startsWith('http')) return url;
+
     // Check if it's a Google Drive URL
     const driveMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
     if (driveMatch) {
@@ -168,7 +214,7 @@ function convertDriveUrl(url) {
  */
 function clearCache() {
     dataCache.data = null;
-    dataCache.timestamp = null;
+    dataCache.timestamp = 30 * 1000;
     console.log('Cache cleared');
 }
 

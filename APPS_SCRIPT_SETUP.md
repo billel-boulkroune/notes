@@ -6,15 +6,15 @@
 اتبع هذه الخطوات بدقة (تستغرق دقيقتين فقط):
 
 ## 1. فتح محرر السكربت
-1. افتح Google Sheet الخاص بك.
+1. افتح Google Sheet الخاصة بك.
 2. من القائمة العلوية، اختر **Extensions** (الإضافات) > **Apps Script**.
 
 ## 2. نسخ الكود
 امسح أي كود موجود في المحرر، وانسخ الكود التالي والصقه مكانه:
 
 ```javascript
-const SHEET_NAME = 'template-sheet.csv'; // تأكد أن هذا يطابق اسم ورقتك
-const SCRIPT_PROP = PropertiesService.getScriptProperties();
+const SHEET_NAME = 'template-sheet.csv';
+const SHEET_ID = SpreadsheetApp.getActiveSpreadsheet().getId();
 
 function doGet(e) {
   return handleRequest(e);
@@ -29,7 +29,7 @@ function handleRequest(e) {
   lock.tryLock(10000);
 
   try {
-    const doc = SpreadsheetApp.getActiveSpreadsheet();
+    const doc = SpreadsheetApp.openById(SHEET_ID);
     const sheet = doc.getSheetByName(SHEET_NAME);
     
     if (!sheet) {
@@ -94,23 +94,10 @@ function handleRequest(e) {
 ```
 
 ## 3. النشر (Deploy)
-1. اضغط على زر **Deploy** (نشر) الأزرق في الأعلى > **New deployment**.
-2. اضغط على أيقونة الترس بجانب "Select type" واختر **Web app**.
-3. املأ البيانات:
-   - **Description**: Student Grades API
-   - **Execute as**: **Me** (أنا)
-   - **Who has access**: **Anyone** (أي شخص) <--- **مهم جداً جداً!**
+1. اضغط على زر **Deploy** (نشر) الأزرق في الأعلى > **Manage deployments**.
+2. اضغط على أيقونة الترس بجانب "Active" واختر **Edit** (تعديل).
+3. في خانة **Version**، اختر **New version** (نسخة جديدة).
 4. اضغط **Deploy**.
-5. سيطلب منك **تصريح الوصول (Authorize access)**:
-   - اختر حسابك.
-   - ستظهر شاشة "Google hasn’t verified this app" (لأنه تطبيقك الخاص).
-   - اضغط **Advanced** (متقدم).
-   - اضغط **Go to ... (unsafe)** في الأسفل.
-   - اضغط **Allow**.
-6. انسخ **Web App URL** (الرابط الطويل).
 
-## 4. وضع الرابط في التطبيق
-1. افتح ملف `admin/js/sheets-manager.js`.
-2. الصق الرابط مكان `YOUR_WEB_APP_URL`.
-
-🎉 انتهى! الآن سيعمل التطبيق بشكل كامل.
+## 4. التحقق
+لقد قمنا بتعديل التطبيق ليقوم بضغط الصور بشكل كبير، لكي تتناسب مع الحجم المسموح به في Google Sheet.
