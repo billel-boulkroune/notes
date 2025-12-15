@@ -39,18 +39,13 @@ let dataCache = {
 };
 
 /**
- * Fetch data from Google Sheets
- * @returns {Promise<Array>} Array of student records
+ * Fetch specific range from Google Sheets
+ * @param {string} range - Range to fetch (e.g., "A:B" or "A5:G5")
+ * @returns {Promise<Object>} API response
  */
-async function fetchSheetData() {
-    // Check cache first
-    if (dataCache.data && dataCache.timestamp && (Date.now() - dataCache.timestamp < dataCache.ttl)) {
-        console.log('Returning cached data');
-        return dataCache.data;
-    }
-
+async function fetchRange(range) {
     try {
-        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEETS_CONFIG.sheetId}/values/${SHEETS_CONFIG.sheetName}?key=${SHEETS_CONFIG.apiKey}`;
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEETS_CONFIG.sheetId}/values/${SHEETS_CONFIG.sheetName}!${range}?key=${SHEETS_CONFIG.apiKey}`;
 
         const response = await fetch(url, { cache: "no-store" });
 
@@ -59,23 +54,58 @@ async function fetchSheetData() {
         }
 
         const data = await response.json();
+        return data.values || [];
+    } catch (error) {
+        console.error(`Error fetching range ${range}:`, error);
+        throw error;
+    }
+}
 
-        if (!data.values || data.values.length === 0) {
+/**
+ * Fetch only Student IDs and Birth Dates (Columns A & B) for searching
+ * @returns {Promise<Array>} Array of [studentId, birthDate] rows
+ */
+async function fetchSearchIndex() {
+    // Check cache first
+    if (dataCache.data && dataCache.timestamp && (Date.now() - dataCache.timestamp < dataCache.ttl)) {
+        console.log('Returning cached index');
+        return dataCache.data;
+    }
+
+    try {
+        // Fetch only columns A and B
+        // We use "A:B" to get the first two columns of all rows
+        const values = await fetchRange('A:B');
+        
+        if (values.length === 0) {
             throw new Error('No data found in sheet');
         }
 
-        // Skip header row (first row)
-        const rows = data.values.slice(1);
-
         // Update cache
-        dataCache.data = rows;
+        dataCache.data = values;
         dataCache.timestamp = Date.now();
 
-        console.log(`Fetched ${rows.length} records from Google Sheets`);
-        return rows;
-
+        console.log(`Fetched ${values.length} records for index`);
+        return values;
     } catch (error) {
-        console.error('Error fetching sheet data:', error);
+        throw error;
+    }
+}
+
+/**
+ * Fetch full student details for a specific row
+ * @param {number} rowIndex - The 1-based row index in the sheet
+ * @returns {Promise<Array>} Array of cell values for the row
+ */
+async function fetchStudentRow(rowIndex) {
+    try {
+        // Fetch the specific row. Assuming data extends up to column G (index 6, 7th column) or more.
+        // We can fetch just the row number, e.g., "5:5" to get the whole row, 
+        // or specific columns like "A5:G5". Let's fetch the whole row to be safe.
+        const values = await fetchRange(`${rowIndex}:${rowIndex}`);
+        return values[0] || [];
+    } catch (error) {
+        console.error(`Error fetching row ${rowIndex}:`, error);
         throw error;
     }
 }
@@ -94,89 +124,86 @@ async function searchStudent(studentId, birthDate) {
 
         if (usingDemo && window.DEMO_DATA) {
             console.log('🎮 Using demo data for testing...');
-
-            // Simulate network delay for realistic experience
             await new Promise(resolve => setTimeout(resolve, 500));
-
-            // Normalize search values
             const searchId = studentId.trim().toLowerCase();
             const searchDate = birthDate.trim();
-
-            // Search in demo data
             const student = window.DEMO_DATA.find(s =>
                 s.studentId.toLowerCase() === searchId &&
                 s.birthDate === searchDate
             );
-
             return student || null;
         }
 
-        // Use Google Sheets API
-        const data = await fetchSheetData();
+        // 1. Fetch the search index (Columns A & B only)
+        const indexData = await fetchSearchIndex();
 
         // Normalize search values
         const searchId = studentId.trim().toLowerCase();
         const searchDate = birthDate.trim();
 
-        // Search for matching record
-        for (const row of data) {
+        // 2. Find the row index locally
+        let foundRowIndex = -1;
+        
+        // Loop through index data
+        // i=0 is typically the header, but we check all just in case, 
+        // or start from 1 if we are sure row 1 is header.
+        // The previous code sliced(1), so it assumed row 1 is header.
+        for (let i = 1; i < indexData.length; i++) {
+            const row = indexData[i];
+            // Safety check if row is shorter than expected
+            if (!row) continue;
+
             const rowId = (row[SHEETS_CONFIG.columns.studentId] || '').toString().trim().toLowerCase();
             const rowDate = (row[SHEETS_CONFIG.columns.birthDate] || '').toString().trim();
 
             if (rowId === searchId && rowDate === searchDate) {
-                // Found a match
-                // Smart Universal Image Handling:
-                // Join all potential chunks, then clean up.
-                let rawImage = row[6] || '';
-                let imageUrl; // Declare imageUrl here
-
-                if (rawImage.startsWith('http')) {
-                    // It's a URL, keep as is
-                    imageUrl = rawImage;
-                } else {
-                    // It's likely a Base64 string (split or not)
-                    // 1. Join all columns to capture full data
-                    let fullString = row.slice(6).join('');
-
-                    // 2. Aggressive Cleaning:
-                    // - Remove underscore '_' (our prefix)
-                    // - Remove newlines
-                    // - Fix spaces (Google Sheets weirdness) to '+'
-                    imageUrl = fullString
-                        .replace(/_/g, '')
-                        .replace(/(\r\n|\n|\r)/gm, "")
-                        .replace(/ /g, '+');
-                }
-
-                console.log('Found Student:', row[SHEETS_CONFIG.columns.studentName]);
-                console.log('Row length:', row.length);
-                console.log('Raw Image Chunks:', row.slice(6).length);
-                console.log('Reconstructed Image Length:', imageUrl.length);
-                if (imageUrl.length > 50) {
-                    const start = imageUrl.substring(0, 30);
-                    console.log('Image Start:', start);
-                    if (!start.startsWith('data:image')) {
-                        console.error('⚠️ Image corrupt? Missing data:image prefix:', start);
-                    } else {
-                        console.log('✅ Image header valid');
-                    }
-                } else {
-                    console.log('Image seems too short or empty:', imageUrl);
-                }
-
-                return {
-                    studentId: row[SHEETS_CONFIG.columns.studentId] || '',
-                    birthDate: row[SHEETS_CONFIG.columns.birthDate] || '', // Use raw date, app.js formats it
-                    studentName: row[SHEETS_CONFIG.columns.studentName] || '',
-                    subject: row[SHEETS_CONFIG.columns.subject] || '',
-                    grade: parseFloat(row[SHEETS_CONFIG.columns.grade]) || 0,
-                    imageUrl: imageUrl
-                };
+                // Found match at array index i
+                // In flexible A1 notation, array index 0 is Row 1.
+                // So array index i is Row i+1.
+                foundRowIndex = i + 1;
+                break;
             }
         }
 
-        // No match found
-        return null;
+        if (foundRowIndex === -1) {
+            return null;
+        }
+
+        console.log(`Match found at Row ${foundRowIndex}. Fetching details...`);
+
+        // 3. Fetch full details for the specific row
+        const fullRow = await fetchStudentRow(foundRowIndex);
+
+        if (!fullRow || fullRow.length === 0) {
+             console.error('Found index but failed to fetch row details.');
+             return null;
+        }
+
+        // 4. Process the full row data (copied from previous logic)
+        // Note: fullRow is just the array of values for that row [col0, col1, ...]
+        
+        let rawImage = fullRow[6] || '';
+        let imageUrl;
+
+        if (rawImage.startsWith('http')) {
+            imageUrl = rawImage;
+        } else {
+            // Reconstruct split base64 if necessary
+            let fullString = fullRow.slice(6).join('');
+            imageUrl = fullString
+                .replace(/_/g, '')
+                .replace(/(\r\n|\n|\r)/gm, "")
+                .replace(/ /g, '+');
+        }
+
+        return {
+            studentId: fullRow[SHEETS_CONFIG.columns.studentId] || '',
+            birthDate: fullRow[SHEETS_CONFIG.columns.birthDate] || '',
+            studentName: fullRow[SHEETS_CONFIG.columns.studentName] || '',
+            subject: fullRow[SHEETS_CONFIG.columns.subject] || '',
+            grade: parseFloat(fullRow[SHEETS_CONFIG.columns.grade]) || 0,
+            imageUrl: imageUrl
+        };
 
     } catch (error) {
         console.error('Error searching for student:', error);
